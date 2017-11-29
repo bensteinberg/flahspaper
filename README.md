@@ -36,7 +36,7 @@ Locally:
 2. Clone this repo and enter the directory: `git clone
    https://github.com/bensteinberg/flahspaper.git ; cd flahspaper`
 3. `stack build`
-4. Get a TLS certificate. Put `server.crt` and `server.key` in the
+4. Get a TLS certificate. Put `certificate.pem` and `key.pem` in the
    application's directory. Like go-flashpaper, flahspaper "requires
    TLS, because we are not savages."
 5. `stack exec flahspaper`
