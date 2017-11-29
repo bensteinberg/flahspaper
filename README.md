@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/bensteinberg/flahspaper.svg?branch=master)](https://travis-ci.org/bensteinberg/flahspaper)
 [![Coverage Status](https://coveralls.io/repos/github/bensteinberg/flahspaper/badge.svg?branch=master)](https://coveralls.io/github/bensteinberg/flahspaper?branch=master)
 
+"flahspaper" is pronounced "flashpaper".
+
 This ~blatant ripoff of~ homage
 to [go-flashpaper](https://github.com/rawdigits/go-flashpaper), a
 service for one-time links, is an exercise in writing a real-world
@@ -42,8 +44,7 @@ Locally:
 
 ## Testing
 
-Test with `stack test` or `stack test --coverage`. Coming up: Travis
-CI and Coveralls. Also, possibly, testing against a Warp server, which
+Test with `stack test` or `stack test --coverage`. Coming up: Coveralls. Also, possibly, testing against a Warp server, which
 should allow round-trip testing of creating a link, fetching the data,
 and confirming that it can't be fetched again.
 
