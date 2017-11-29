@@ -1,0 +1,73 @@
+name:                flahspaper
+version:             0.1.0.0
+synopsis:            Service for one-time links
+homepage:            https://github.com/bensteinberg/flahspaper
+license:             MIT
+license-file:        LICENSE
+author:              Ben Steinberg
+maintainer:          bsteinberg@law.harvard.edu
+copyright:           2017 Ben Steinberg
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+extra-source-files:  README.md
+
+executable flahspaper
+  hs-source-dirs:      exe
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , flahspaper
+                     , warp
+                     , warp-tls
+                     , wai
+                     , wai-extra
+                     , http-types
+                     , time
+                     , bytestring
+                     , crypto-random
+                     , DRBG
+                     , containers
+                     , stm
+                     , interpolatedstring-perl6
+                     , MissingH
+                     , utf8-string
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Flahspaper
+  default-language:    Haskell2010
+  build-depends:       base >= 4.7 && < 5
+                     , wai
+                     , wai-extra
+                     , http-types
+                     , time
+                     , bytestring
+                     , crypto-random
+                     , DRBG
+                     , containers
+                     , stm
+                     , interpolatedstring-perl6
+                     , MissingH
+                     , utf8-string
+
+test-suite spec
+  type:                exitcode-stdio-1.0
+  default-language:    Haskell2010
+  hs-source-dirs:      test
+  ghc-options:         -Wall
+  main-is:             Spec.hs
+  other-modules:       FlahspaperSpec
+                     , FlahspaperFuncSpec
+  build-depends:       base >= 4.7 && < 5
+                     , flahspaper
+                     , hspec
+                     , hspec-wai
+                     , bytestring
+                     , wai
+                     , wai-extra
+                     , warp
+                     , containers
+                     , stm
+                     , http-types
+                     , time
