@@ -40,7 +40,9 @@ Locally:
 ## Testing
 
 Test with `stack test` or `stack test --coverage`. Coming up: Travis
-CI and Coveralls. Also, possibly, testing against a Warp server.
+CI and Coveralls. Also, possibly, testing against a Warp server, which
+should allow round-trip testing of creating a link, fetching the data,
+and confirming that it can't be fetched again.
 
 ## Points of perhaps minor interest
 
@@ -75,10 +77,10 @@ question is, does overwriting a TVar actually overwrite the data in
 memory? What kind of garbage collection does Haskell do? TODO:
 investigate, perform the experiment.
 
-Also TODO: don't use constants like go-flashpaper -- make a
+Also TODO: don't use constants like go-flashpaper does -- make a
 context/environment, maybe with ReaderT, so as to make testing easier
 and remove the secrets argument to the application. Maybe also add the
 random Gen to the context?
 
-Also TODO: reorganize specs so they can be auto-discovered and don't
+Also TODO: reorganize specs so they can be auto-discovered but don't
 need to be specified in `other-modules`.
