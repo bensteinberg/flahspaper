@@ -1,5 +1,8 @@
 # flahspaper
 
+[![Build Status](https://travis-ci.org/bensteinberg/flahspaper.svg?branch=master)](https://travis-ci.org/bensteinberg/flahspaper)
+[![Coverage Status](https://coveralls.io/repos/github/bensteinberg/flahspaper/badge.svg?branch=master)](https://coveralls.io/github/bensteinberg/flahspaper?branch=master)
+
 This ~blatant ripoff of~ homage
 to [go-flashpaper](https://github.com/rawdigits/go-flashpaper), a
 service for one-time links, is an exercise in writing a real-world
