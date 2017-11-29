@@ -7,12 +7,23 @@ program in Haskell. It has diverged from Ryan's excellent one-file
 aesthetic, as I wanted to use `stack` to generate scaffolding and set
 up tests.
 
+I quote: "It is a web service that allows you to upload text snippets
+or files and generates one time use links to share these things with
+other people. As soon as the sharing link is accessed, the data is
+deleted from the web service's memory and the link expires. This means
+that old links are useless, even if shared somewhere insecure. This
+can be used to share sensitive data with friends or colleagues."
+Flahspaper, like go-flashpaper, "has a maximum data retention period
+of 24 hours."
+
 ## Build and run
 
 I commend you
 to [go-flashpaper](https://github.com/rawdigits/go-flashpaper)'s
 excellent README for considerations on running this anywhere other
-than locally.
+than locally. There are several such considerations.
+
+Locally:
 
 1. Install
    [Haskell Stack](https://docs.haskellstack.org/en/stable/README/)
