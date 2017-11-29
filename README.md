@@ -3,7 +3,8 @@
 [![Build Status](https://travis-ci.org/bensteinberg/flahspaper.svg?branch=master)](https://travis-ci.org/bensteinberg/flahspaper)
 [![Coverage Status](https://coveralls.io/repos/github/bensteinberg/flahspaper/badge.svg?branch=master)](https://coveralls.io/github/bensteinberg/flahspaper?branch=master)
 
-"flahspaper" is pronounced "flashpaper".
+"flahspaper" is pronounced "flashpaper". It's flashpaper with Haskell
+inside.
 
 This ~blatant ripoff of~ homage
 to [go-flashpaper](https://github.com/rawdigits/go-flashpaper), a
@@ -77,7 +78,7 @@ of
 
 If swap is turned off, secrets should only be kept in RAM. Presumably
 that's safe, as anyone who can see your memory already owns you. The
-question is, does overwriting a TVar actually overwrite the data in
+question is, does writing a TVar actually overwrite the data in
 memory? What kind of garbage collection does Haskell do? TODO:
 investigate, perform the experiment.
 
