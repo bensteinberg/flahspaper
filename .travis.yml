@@ -37,8 +37,7 @@ install:
 
 script:
 # Build the package, its tests, and its docs and run the tests
-- stack --no-terminal test --coverage
+- stack --no-terminal test :shc-test --coverage
 
 after_script:
-- stack install stack-hpc-coveralls
 - shc flahspaper spec

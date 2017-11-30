@@ -37,6 +37,10 @@ resolver: lts-9.14
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
+- location:
+   git: https://github.com/bensteinberg/stack-hpc-coveralls.git
+   commit: 2fb15e25fa960a78fff5a6d780ea992d6a12b677
+   extra-dep: true
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps: []
