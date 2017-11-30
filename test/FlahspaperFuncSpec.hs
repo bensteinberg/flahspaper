@@ -17,7 +17,7 @@ spec = do
       now <- getCurrentTime
       (diffUTCTime now (secretTime s) < 1) `shouldBe` True
       secretType s `shouldBe` Data
-      (length $ secretId s) > 0 `shouldBe` True
+      length (secretId s) > 0 `shouldBe` True
       secretName s `shouldBe` ""
       secretData s `shouldBe` "some data"
     it "File Secret" $ do
@@ -25,15 +25,15 @@ spec = do
       now <- getCurrentTime
       (diffUTCTime now (secretTime s) < 1) `shouldBe` True
       secretType s `shouldBe` File
-      (length $ secretId s) > 0 `shouldBe` True
+      length (secretId s) > 0 `shouldBe` True
       secretName s `shouldBe` "file.txt"
       secretData s `shouldBe` "some data"
 
   describe "Verify that isSlack works" $ do
     it "Slack" $ do
-      (isSlack $ Just "Slackbot") `shouldBe` True
+      isSlack (Just "Slackbot") `shouldBe` True
     it "not Slack" $ do
-      (isSlack $ Just "Hello") `shouldBe` False
+      isSlack (Just "Hello") `shouldBe` False
     it "nothing" $ do
       isSlack Nothing `shouldBe` False
 
@@ -42,6 +42,6 @@ spec = do
     it "Check status" $ do
       responseStatus r `shouldBe` status200
       let headers = responseHeaders r
-      (length headers) `shouldBe` 1
-      (fst (headers !! 0)) `shouldBe` hContentType
-      (snd (headers !! 0)) `shouldBe` "text/html"
+      length headers `shouldBe` 1
+      fst (head headers) `shouldBe` hContentType
+      snd (head headers) `shouldBe` "text/html"

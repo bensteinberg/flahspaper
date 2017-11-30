@@ -41,7 +41,7 @@ shareable :: B.ByteString -> String -> Response
 shareable approot key = responseLBS
                       status200
                       [("Content-Type", "text/html")] $
-                      BL.concat $ [lackofstyle, shareform, endofstyle]
+                      BL.concat [lackofstyle, shareform, endofstyle]
   where renderS = renderSecs . round :: NominalDiffTime -> String
         shareform = [qc|
 <p>share this link (do not click!):</p>
@@ -59,7 +59,7 @@ janitor secrets = forever $ do
 -- does overwriting a TVar really destroy the original contents?
 sweep :: Secrets -> UTCTime -> STM ()
 sweep secrets now = do
-  secretMap <- (readTVar secrets)
+  secretMap <- readTVar secrets
   let secretMap' = Map.filter
                    (\x -> diffUTCTime now (secretTime x) < expiration)
                    secretMap
@@ -71,9 +71,9 @@ newSecret stype payload name = do
   t  <- getCurrentTime
   return $ Secret key stype t payload name
 
--- from https://stackoverflow.com/a/8416189/4074877
+-- from https://stackoverflow.com/a/8416189/4074877, enhanced by hlint
 prettyPrint :: B.ByteString -> String
-prettyPrint = concat . map (flip showHex "") . B.unpack
+prettyPrint = concatMap (`showHex` "") . B.unpack
 
 -- leave the Gen in the function
 -- better to pass it around with Control.Monad.Random?
@@ -95,22 +95,21 @@ insertAndShare :: Secret ->
                   IO ResponseReceived
 insertAndShare s secrets approot respond = do
   atomically $ do
-    secretMap <- (readTVar secrets)
+    secretMap <- readTVar secrets
     let secretMap' = Map.insert (secretId s) s secretMap
     writeTVar secrets secretMap'
   respond $ shareable approot (secretId s)
 
 lookupSecret :: String -> Secrets -> IO (Maybe Secret)
-lookupSecret key secrets = do
-  s <- atomically $ do
-    secretMap <- (readTVar secrets)
+lookupSecret key secrets =
+  atomically $ do
+    secretMap <- readTVar secrets
     let (secretMap', secretMap'') =
           Map.partitionWithKey (\k _ -> k == key) secretMap
     writeTVar secrets secretMap''
-    return $ if (Prelude.length $ Map.toList secretMap') > 0
+    return $ if not (null $ Map.toList secretMap')
              then Just (secretMap' Map.! key)
              else Nothing
-  return s
 
 returnSecretOrError :: Maybe Secret ->
                        (Response -> IO ResponseReceived) ->
@@ -126,7 +125,7 @@ returnSecretOrError (Just s) respond =
        status200
        [("Content-Type", "application/octet-stream"),
         ("Content-Disposition",
-         B.concat $ ["attachment; filename=", secretName s])] $
+         B.concat ["attachment; filename=", secretName s])] $
        BL.fromStrict (secretData s)
   else respond $ responseLBS
        status200
@@ -152,25 +151,25 @@ app secrets request respond
   | pm == ("", g) || pm == ("/", g) = respond $ responseLBS
                                       status200
                                       [("Content-Type", "text/html")] $
-                                      BL.concat $
+                                      BL.concat
                                       [lackofstyle, index, endofstyle]
   | pm == ("/add", g)         = respond $ responseLBS
                                 status200
                                 [("Content-Type", "text/html")] $
-                                BL.concat $
+                                BL.concat
                                 [lackofstyle, inputtextform, endofstyle]
   | pm == ("/addfile", g)     = respond $ responseLBS
                                 status200
                                 [("Content-Type", "text/html")] $
-                                BL.concat $
+                                BL.concat
                                 [lackofstyle, inputfileform, endofstyle]
   -- here are the two POST routes
   | pm == ("/add", p) = do
       parsed <- parseRequestBodyEx defaultParseRequestBodyOptions lbsBackEnd r
       let kv = filter (\x -> fst x == "secret") (fst parsed)
-      if length kv > 0
+      if not (null kv)
       then do
-        let payload = snd $ head $ kv
+        let payload = snd $ head kv
         s <- newSecret Data payload B.empty
         insertAndShare s secrets approot respond
       else respond $ responseLBS
@@ -180,18 +179,18 @@ app secrets request respond
   | pm == ("/addfile", p) = do
       parsed <- parseRequestBodyEx defaultParseRequestBodyOptions lbsBackEnd r
       let kv = filter (\x -> fst x == "file") (snd parsed)
-      if length kv > 0
+      if not (null kv)
       then do
-        let fileinfo = snd $ head $ kv
+        let fileinfo = snd $ head kv
             filecontent = BL.toStrict $ fileContent fileinfo
-        if (B.length filecontent) < maxFileSize
+        if B.length filecontent < maxFileSize
         then do
           s <- newSecret File filecontent (fileName fileinfo)
           insertAndShare s secrets approot respond
         else respond $ responseLBS
              status200
              [("Content-Type", "text/html")] $
-             BL.concat $
+             BL.concat
              [lackofstyle, uploaderror, endofstyle]
       else respond $ responseLBS
            status400

@@ -19,7 +19,7 @@ myApp = do
   -- A do-notation statement discarded a result of type
   --  ‘GHC.Conc.Sync.ThreadId’
   _ <- ($) forkIO $ janitor secrets
-  return $ (app secrets)
+  return $ app secrets
 
 spec :: Spec
 spec = with myApp $ do
