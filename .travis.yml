@@ -36,8 +36,10 @@ install:
 - stack --no-terminal --install-ghc test --only-dependencies
 
 script:
-# Build the package, its tests, and its docs and run the tests
+# Build the package and its tests, and run the tests
 - stack --no-terminal test :spec --coverage
+# run hlint
+- curl -sL https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh | sh -s .
 
 after_script:
 - stack install stack-hpc-coveralls
