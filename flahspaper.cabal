@@ -57,11 +57,10 @@ test-suite spec
   hs-source-dirs:      test
   ghc-options:         -Wall
   main-is:             Spec.hs
-  other-modules:       FlahspaperSpec
-                     , FlahspaperFuncSpec
   build-depends:       base >= 4.7 && < 5
                      , flahspaper
                      , hspec
+                     , hspec-discover
                      , hspec-wai
                      , bytestring
                      , wai

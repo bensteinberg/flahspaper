@@ -86,6 +86,3 @@ Also TODO: don't use constants like go-flashpaper does -- make a
 context/environment, maybe with ReaderT, so as to make testing easier
 and remove the secrets argument to the application. Maybe also add the
 random Gen to the context?
-
-Also TODO: reorganize specs so they can be auto-discovered but don't
-need to be specified in `other-modules`.
