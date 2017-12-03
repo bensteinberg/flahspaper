@@ -72,3 +72,6 @@ test-suite spec
                      , time
                      , wreq
                      , lens
+--                     , http-conduit
+                     , tagsoup
+                     , text

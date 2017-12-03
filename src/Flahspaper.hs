@@ -45,7 +45,7 @@ shareable approot key = responseLBS
   where renderS = renderSecs . round :: NominalDiffTime -> String
         shareform = [qc|
 <p>share this link (do not click!):</p>
-<h2>{approot}/{key}</h2>
+<h2 id="url">{approot}/{key}</h2>
 <p>THIS LINK WILL EXPIRE IN {renderS expiration}</p>
 <p><a href="/">Share Another Secret</a></p>
 |]

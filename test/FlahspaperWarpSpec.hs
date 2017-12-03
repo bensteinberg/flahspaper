@@ -8,8 +8,15 @@ import Control.Concurrent.STM
 import Network.Wai.Handler.Warp (run)
 import Network.Wreq
 import Network.Wreq.Types
+-- import Network.HTTP.Types (status404)
+-- import Network.HTTP.Conduit (HttpExceptionContent (StatusCodeException))
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Char8 as BC
+import qualified Data.ByteString.Lazy.Char8 as BLC
+import qualified Data.Text as T
 import Control.Lens
+-- import Control.Exception.Base (evaluate)
+import Text.HTML.TagSoup
 
 runApp :: IO ()
 runApp = do
@@ -37,21 +44,28 @@ spec = beforeAll runApp $ do
     it "GET /addfile" $ do
       r <- get' "/addfile"
       (r ^. responseStatus . statusCode) `shouldBe` 200
-    -- it "GET /badness" $ do
-    --   r <- getWith (set Network.Wreq.checkResponse (Just $ \_ _ _ -> Nothing) defaults) "http://localhost:8080/badness"
-    --   r <- get' "/badness"
-    --   (r ^. responseStatus . statusCode) `shouldBe` 404
-    --   evaluate (get' "/badness") `shouldThrow` HttpException
+    it "GET /badness" $ do
+      pendingWith "Need to catch 404 exception"
+    --   evaluate (get' "/badness") `shouldThrow` anyErrorCall
   describe "Round-trip testing" $ do
-    it "Create a secret and get a URL" $ do
-      pending
-    it "Retrieve the secret" $ do
-      pending
+    it "Create and retrieve a secret" $ do
+      -- create a secret
+      r <- post' "/add" [BC.pack "secret" := "Hello"]
+      let url = getUrl $ r ^. responseBody
+      (r ^. responseStatus . statusCode) `shouldBe` 200
+      -- retrieve the secret
+      r' <- get $ BLC.unpack url
+      (r' ^. responseStatus . statusCode) `shouldBe` 200
+      (r' ^. responseBody) `shouldBe` BLC.pack "Hello"
     it "Confirm the secret can no longer be retrieved"
       pending
-    it "Create a secret from a file and get a URL" $ do
-      pending
-    it "Retrieve the file" $ do
-      pending
+    it "Create and retrieve a secret file" $ do
+      r <- post' "/addfile" (partFile (T.pack "file") "README.md")
+      let url = getUrl $ r ^. responseBody
+      (r ^. responseStatus . statusCode) `shouldBe` 200
+      r' <- get $ BLC.unpack url
+      (r' ^. responseStatus . statusCode) `shouldBe` 200
     it "Confirm the file can no longer be retrieved"
-      pending    
+      pending
+      where getUrl =
+              innerText . take 2 . dropWhile (~/= "<h2 id=url>") . parseTags
