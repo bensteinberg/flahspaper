@@ -70,3 +70,5 @@ test-suite spec
                      , stm
                      , http-types
                      , time
+                     , wreq
+                     , lens
