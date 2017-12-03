@@ -8,14 +8,11 @@ import Control.Concurrent.STM
 import Network.Wai.Handler.Warp (run)
 import Network.Wreq
 import Network.Wreq.Types
--- import Network.HTTP.Types (status404)
--- import Network.HTTP.Conduit (HttpExceptionContent (StatusCodeException))
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BC
 import qualified Data.ByteString.Lazy.Char8 as BLC
 import qualified Data.Text as T
 import Control.Lens
--- import Control.Exception.Base (evaluate)
 import Text.HTML.TagSoup
 
 runApp :: IO ()
@@ -45,8 +42,8 @@ spec = beforeAll runApp $ do
       r <- get' "/addfile"
       (r ^. responseStatus . statusCode) `shouldBe` 200
     it "GET /badness" $ do
-      pendingWith "Need to catch 404 exception"
-    --   evaluate (get' "/badness") `shouldThrow` anyErrorCall
+      r'' <- getWith opts "http://localhost:8080/badness"
+      (r'' ^. responseBody) `shouldBe` BLC.pack "You are likely to be eaten by a grue"
   describe "Round-trip testing" $ do
     it "Create and retrieve a secret" $ do
       -- create a secret
@@ -57,15 +54,18 @@ spec = beforeAll runApp $ do
       r' <- get $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 200
       (r' ^. responseBody) `shouldBe` BLC.pack "Hello"
-    it "Confirm the secret can no longer be retrieved"
-      pending
+      r'' <- getWith opts $ BLC.unpack url
+      (r'' ^. responseBody) `shouldBe` BLC.pack "You are likely to be eaten by a grue"
     it "Create and retrieve a secret file" $ do
       r <- post' "/addfile" (partFile (T.pack "file") "README.md")
       let url = getUrl $ r ^. responseBody
       (r ^. responseStatus . statusCode) `shouldBe` 200
       r' <- get $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 200
-    it "Confirm the file can no longer be retrieved"
-      pending
+
+      r'' <- getWith opts $ BLC.unpack url
+      (r'' ^. responseBody) `shouldBe` BLC.pack "You are likely to be eaten by a grue"
       where getUrl =
               innerText . take 2 . dropWhile (~/= "<h2 id=url>") . parseTags
+            -- https://stackoverflow.com/a/34290005 needs a tweak
+            opts = set Network.Wreq.checkResponse (Just $ \_ _ -> return ()) defaults
