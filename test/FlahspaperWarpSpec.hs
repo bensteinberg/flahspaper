@@ -14,6 +14,7 @@ import qualified Data.ByteString.Lazy.Char8 as BLC
 import qualified Data.Text as T
 import Control.Lens
 import Text.HTML.TagSoup
+import Network.HTTP.Types (hUserAgent)
 
 runApp :: IO ()
 runApp = do
@@ -104,8 +105,13 @@ spec = beforeAll runApp $ do
       (r ^. responseBody) `shouldBe`
         BLC.pack "yuck"
 
+    it "Connect from Slack" $ do
+      r <- getWith slackopts "http://localhost:8080/"
+      (r ^. responseStatus . statusCode) `shouldBe` 404
+
       where getH2 =
               innerText . take 2 . dropWhile (~/= "<h2>") . parseTags
             -- https://stackoverflow.com/a/34290005 plus tweak
             opts = set Network.Wreq.checkResponse
               (Just $ \_ _ -> return ()) defaults
+            slackopts = opts & header hUserAgent .~ [BC.pack "Slackbot"]
