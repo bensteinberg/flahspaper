@@ -45,9 +45,8 @@ Locally:
 
 ## Testing
 
-Test with `stack test` or `stack test --coverage`. Coming up: Coveralls. Also, possibly, testing against a Warp server, which
-should allow round-trip testing of creating a link, fetching the data,
-and confirming that it can't be fetched again.
+Test with `stack test` or `stack test --coverage`. Possibly coming up:
+QuickCheck. 
 
 ## Points of perhaps minor interest
 
@@ -56,7 +55,7 @@ in a class or book, in that getting things to work is precisely a
 matter of following the types.
 
 This project contains a number of features commonly needed by
-real-world programs, for each of which there are various possible
+real-world programs, for many of which there are various possible
 solutions. For the **web server**, I
 chose [WAI](https://hackage.haskell.org/package/wai)
 and [Warp](https://hackage.haskell.org/package/warp). I'm generating
@@ -74,7 +73,9 @@ use
 [Text.InterpolatedString.Perl6](https://hackage.haskell.org/package/interpolatedstring-perl6) instead
 of
 [Text.RawString.QQ](https://hackage.haskell.org/package/raw-strings-qq) for
-**quasiquoting** in order to get string interpolation.
+**quasiquoting** in order to get string interpolation. For testing the
+running application, I'm using [wreq](http://www.serpentine.com/wreq/)
+as a client.
 
 If swap is turned off, secrets should only be kept in RAM. Presumably
 that's safe, as anyone who can see your memory already owns you. The
@@ -82,7 +83,7 @@ question is, does writing a TVar actually overwrite the data in
 memory? What kind of garbage collection does Haskell do? TODO:
 investigate, perform the experiment.
 
-Also TODO: don't use constants like go-flashpaper does -- make a
-context/environment, maybe with ReaderT, so as to make testing easier
-and remove the secrets argument to the application. Maybe also add the
-random Gen to the context?
+Although this program no longer uses constants like go-flashpaper does
+(in order to make testing easier), it does pass the values around in
+an options object, so TODO: make a context/environment, maybe with
+ReaderT. Maybe also add the random Gen to the context?
