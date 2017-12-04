@@ -31,6 +31,9 @@ get' path = get $ "http://localhost:8080" ++ path
 post' :: Postable a => String -> a -> IO (Response BL.ByteString)
 post' path = post $ "http://localhost:8080" ++ path
 
+grue :: BLC.ByteString
+grue = BLC.pack "You are likely to be eaten by a grue"
+
 spec :: Spec
 spec = beforeAll runApp $ do
   describe "Test GET routes" $ do
@@ -44,9 +47,8 @@ spec = beforeAll runApp $ do
       r <- get' "/addfile"
       (r ^. responseStatus . statusCode) `shouldBe` 200
     it "GET /badness" $ do
-      r'' <- getWith opts "http://localhost:8080/badness"
-      (r'' ^. responseBody) `shouldBe`
-        BLC.pack "You are likely to be eaten by a grue"
+      r <- getWith opts "http://localhost:8080/badness"
+      (r ^. responseBody) `shouldBe` grue
 
   describe "Round-trip testing" $ do
     it "Create and retrieve a secret" $ do
@@ -61,8 +63,7 @@ spec = beforeAll runApp $ do
       -- try to retrieve it again
       r'' <- getWith opts $ BLC.unpack url
       (r'' ^. responseStatus . statusCode) `shouldBe` 404
-      (r'' ^. responseBody) `shouldBe`
-        BLC.pack "You are likely to be eaten by a grue"
+      (r'' ^. responseBody) `shouldBe` grue
 
     it "Create and retrieve a secret file" $ do
       -- upload a file
@@ -75,8 +76,7 @@ spec = beforeAll runApp $ do
       -- try to retrieve it again
       r'' <- getWith opts $ BLC.unpack url
       (r'' ^. responseStatus . statusCode) `shouldBe` 404
-      (r'' ^. responseBody) `shouldBe`
-        BLC.pack "You are likely to be eaten by a grue"
+      (r'' ^. responseBody) `shouldBe` grue
 
   describe "Test error conditions" $ do
     it "Try to upload too large a file" $ do
@@ -95,8 +95,7 @@ spec = beforeAll runApp $ do
       -- try to retrieve it
       r' <- getWith opts $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 404
-      (r' ^. responseBody) `shouldBe`
-        BLC.pack "You are likely to be eaten by a grue"
+      (r' ^. responseBody) `shouldBe` grue
 
     it "Post file improperly" $ do
       r <- postWith opts "http://localhost:8080/addfile"
