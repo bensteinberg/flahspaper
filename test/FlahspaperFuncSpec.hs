@@ -3,11 +3,8 @@ module FlahspaperFuncSpec (spec) where
 
 import Test.Hspec
 import Flahspaper
-import Data.Time
 import Network.Wai
 import Network.HTTP.Types
--- import qualified Data.ByteString as B
-
 
 spec :: Spec
 spec = do
