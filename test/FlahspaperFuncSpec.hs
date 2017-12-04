@@ -11,24 +11,6 @@ import Network.HTTP.Types
 
 spec :: Spec
 spec = do
-  describe "Make a new Secret" $ do
-    it "Data Secret" $ do
-      s <- newSecret Data "some data" ""
-      now <- getCurrentTime
-      (diffUTCTime now (secretTime s) < 1) `shouldBe` True
-      secretType s `shouldBe` Data
-      length (secretId s) > 0 `shouldBe` True
-      secretName s `shouldBe` ""
-      secretData s `shouldBe` "some data"
-    it "File Secret" $ do
-      s <- newSecret File "some data" "file.txt"
-      now <- getCurrentTime
-      (diffUTCTime now (secretTime s) < 1) `shouldBe` True
-      secretType s `shouldBe` File
-      length (secretId s) > 0 `shouldBe` True
-      secretName s `shouldBe` "file.txt"
-      secretData s `shouldBe` "some data"
-
   describe "Verify that isSlack works" $ do
     it "Slack" $ do
       isSlack (Just "Slackbot") `shouldBe` True

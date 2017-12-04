@@ -20,14 +20,14 @@ import Control.Monad (forever)
 import System.Time.Utils (renderSecs)
 import qualified Data.ByteString.UTF8 as BSU
 
-data Type = File | Data deriving (Eq, Show)
+data Type = File | Data deriving Eq
 
 data Secret =
   Secret { secretId   :: String
          , secretType :: Type
          , secretTime :: UTCTime
          , secretData :: B.ByteString
-         , secretName :: B.ByteString } deriving Eq
+         , secretName :: B.ByteString }
 
 type SecretMap = Map.Map String Secret
 
