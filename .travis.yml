@@ -37,7 +37,7 @@ install:
 
 script:
 # Build the package and its tests, and run the tests
-- stack --no-terminal test :spec --coverage
+- stack --no-terminal test :spec :style --coverage
 
 after_script:
 - stack install stack-hpc-coveralls
