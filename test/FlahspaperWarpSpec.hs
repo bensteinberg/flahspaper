@@ -19,8 +19,9 @@ runApp :: IO ()
 runApp = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
-  _ <- ($) forkIO $ janitor secrets
-  _ <- ($) forkIO $ run 8080 $ app secrets
+  let sopts = Flahspaper.Options 2 2048
+  _ <- ($) forkIO $ janitor secrets sopts
+  _ <- ($) forkIO $ run 8080 $ app secrets sopts
   putStrLn "  Started server..."
 
 get' :: String -> IO (Response BL.ByteString)
@@ -48,24 +49,36 @@ spec = beforeAll runApp $ do
     it "Create and retrieve a secret" $ do
       -- create a secret
       r <- post' "/add" [BC.pack "secret" := "Hello"]
-      let url = getUrl $ r ^. responseBody
+      let url = getH2 $ r ^. responseBody
       (r ^. responseStatus . statusCode) `shouldBe` 200
       -- retrieve the secret
       r' <- get $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 200
       (r' ^. responseBody) `shouldBe` BLC.pack "Hello"
+      -- try to retrieve it again
       r'' <- getWith opts $ BLC.unpack url
-      (r'' ^. responseBody) `shouldBe` BLC.pack "You are likely to be eaten by a grue"
+      (r'' ^. responseStatus . statusCode) `shouldBe` 404
+      (r'' ^. responseBody) `shouldBe`
+        BLC.pack "You are likely to be eaten by a grue"
     it "Create and retrieve a secret file" $ do
-      r <- post' "/addfile" (partFile (T.pack "file") "README.md")
-      let url = getUrl $ r ^. responseBody
+      -- upload a file
+      r <- post' "/addfile" (partFile (T.pack "file") "LICENSE")
+      let url = getH2 $ r ^. responseBody
       (r ^. responseStatus . statusCode) `shouldBe` 200
+      -- retrieve it; confirm that it is the same file?
       r' <- get $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 200
-
+      -- try to retrieve it again
       r'' <- getWith opts $ BLC.unpack url
-      (r'' ^. responseBody) `shouldBe` BLC.pack "You are likely to be eaten by a grue"
-      where getUrl =
-              innerText . take 2 . dropWhile (~/= "<h2 id=url>") . parseTags
-            -- https://stackoverflow.com/a/34290005 needs a tweak
+      (r'' ^. responseStatus . statusCode) `shouldBe` 404
+      (r'' ^. responseBody) `shouldBe`
+        BLC.pack "You are likely to be eaten by a grue"
+    it "Try to upload too large a file" $ do
+      r <- post' "/addfile" (partFile (T.pack "file") "README.md")
+      (r ^. responseStatus . statusCode) `shouldBe` 200
+      let msg = getH2 $ r ^. responseBody
+      msg `shouldBe` BLC.pack "Upload too large."
+      where getH2 =
+              innerText . take 2 . dropWhile (~/= "<h2>") . parseTags
+            -- https://stackoverflow.com/a/34290005 plus tweak
             opts = set Network.Wreq.checkResponse (Just $ \_ _ -> return ()) defaults

@@ -38,7 +38,7 @@ spec = do
       isSlack Nothing `shouldBe` False
 
   describe "Verify shareable" $ do
-    let r = shareable "https://localhost" "1234"
+    let r = shareable (Options 12 34) "https://localhost" "1234"
     it "Check status" $ do
       responseStatus r `shouldBe` status200
       let headers = responseHeaders r

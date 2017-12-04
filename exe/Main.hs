@@ -15,9 +15,11 @@ main = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
 
-  forkIO $ janitor secrets
+  let sopts = Options (24 * 60 * 60) 10485760
+
+  forkIO $ janitor secrets sopts
 
   let tlsConfig = tlsSettings "certificate.pem" "key.pem"
       config = setPort 8443 defaultSettings
   -- runTLS tlsConfig config (logStdoutDev $ app secrets)
-  runTLS tlsConfig config $ app secrets
+  runTLS tlsConfig config $ app secrets sopts

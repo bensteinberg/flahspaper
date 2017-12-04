@@ -15,11 +15,12 @@ myApp :: IO Application
 myApp = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
+  let sopts = Options (24 * 60 * 60) 10485760
   -- syntax to suppress a warning:
   -- A do-notation statement discarded a result of type
   --  ‘GHC.Conc.Sync.ThreadId’
-  _ <- ($) forkIO $ janitor secrets
-  return $ app secrets
+  _ <- ($) forkIO $ janitor secrets sopts
+  return $ app secrets sopts
 
 spec :: Spec
 spec = with myApp $ do

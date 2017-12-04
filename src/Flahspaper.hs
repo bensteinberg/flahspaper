@@ -33,35 +33,36 @@ type SecretMap = Map.Map String Secret
 
 type Secrets = TVar SecretMap
 
-hours = 24
-expiration = hours * 60 * 60  -- in seconds
-maxFileSize = 10485760
+data Options =
+  Options { secretExpiration  :: NominalDiffTime
+          , secretMaxFileSize :: Int } deriving (Show)
 
-shareable :: B.ByteString -> String -> Response
-shareable approot key = responseLBS
-                      status200
-                      [("Content-Type", "text/html")] $
-                      BL.concat [lackofstyle, shareform, endofstyle]
+shareable :: Options -> B.ByteString -> String -> Response
+shareable sopts approot key = responseLBS
+                             status200
+                             [("Content-Type", "text/html")] $
+                             BL.concat [lackofstyle, shareform, endofstyle]
   where renderS = renderSecs . round :: NominalDiffTime -> String
         shareform = [qc|
 <p>share this link (do not click!):</p>
 <h2 id="url">{approot}/{key}</h2>
-<p>THIS LINK WILL EXPIRE IN {renderS expiration}</p>
+<p>THIS LINK WILL EXPIRE IN {renderS $ secretExpiration sopts}</p>
 <p><a href="/">Share Another Secret</a></p>
 |]
 
-janitor :: Secrets -> IO ()
-janitor secrets = forever $ do
+janitor :: Secrets -> Options -> IO ()
+janitor secrets sopts = forever $ do
   threadDelay 1000000
   now <- getCurrentTime  
-  forkIO $ atomically $ sweep secrets now
+  forkIO $ atomically $ sweep secrets sopts now
 
 -- does overwriting a TVar really destroy the original contents?
-sweep :: Secrets -> UTCTime -> STM ()
-sweep secrets now = do
+sweep :: Secrets -> Options -> UTCTime -> STM ()
+sweep secrets sopts now = do
   secretMap <- readTVar secrets
   let secretMap' = Map.filter
-                   (\x -> diffUTCTime now (secretTime x) < expiration)
+                   (\x -> diffUTCTime now (secretTime x) <
+                     secretExpiration sopts)
                    secretMap
   writeTVar secrets secretMap'
 
@@ -90,15 +91,16 @@ isSlack (Just useragent) = B.isInfixOf "Slack" useragent
 
 insertAndShare :: Secret ->
                   Secrets ->
+                  Options ->
                   B.ByteString ->
                   (Response -> IO ResponseReceived) ->
                   IO ResponseReceived
-insertAndShare s secrets approot respond = do
+insertAndShare s secrets sopts approot respond = do
   atomically $ do
     secretMap <- readTVar secrets
     let secretMap' = Map.insert (secretId s) s secretMap
     writeTVar secrets secretMap'
-  respond $ shareable approot (secretId s)
+  respond $ shareable sopts approot (secretId s)
 
 lookupSecret :: String -> Secrets -> IO (Maybe Secret)
 lookupSecret key secrets =
@@ -132,8 +134,8 @@ returnSecretOrError (Just s) respond =
        [("Content-Type", "text/plain")] $
        BL.fromStrict (secretData s)
 
-app :: Secrets -> Application
-app secrets request respond
+app :: Secrets -> Options -> Application
+app secrets sopts request respond
   -- do not allow Slack to expand links
   -- Test.Hspec.Wai does not get here -- why?
   | isSlack $ requestHeaderUserAgent request =
@@ -171,7 +173,7 @@ app secrets request respond
       then do
         let payload = snd $ head kv
         s <- newSecret Data payload B.empty
-        insertAndShare s secrets approot respond
+        insertAndShare s secrets sopts approot respond
       else respond $ responseLBS
            status400
            [("Content-Type", "text/plain")]
@@ -183,10 +185,10 @@ app secrets request respond
       then do
         let fileinfo = snd $ head kv
             filecontent = BL.toStrict $ fileContent fileinfo
-        if B.length filecontent < maxFileSize
+        if B.length filecontent < secretMaxFileSize sopts
         then do
           s <- newSecret File filecontent (fileName fileinfo)
-          insertAndShare s secrets approot respond
+          insertAndShare s secrets sopts approot respond
         else respond $ responseLBS
              status200
              [("Content-Type", "text/html")] $
@@ -248,6 +250,6 @@ inputfileform = [q|
 |]
 
 uploaderror = [q|
-<h2>Upload too large.</h2>
+<h2 id="msg">Upload too large.</h2>
 <p><a href="/">Share Another Secret</a></p>
 |]
