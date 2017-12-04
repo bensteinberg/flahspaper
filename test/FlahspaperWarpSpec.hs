@@ -76,6 +76,7 @@ spec = beforeAll runApp $ do
       (r'' ^. responseStatus . statusCode) `shouldBe` 404
       (r'' ^. responseBody) `shouldBe`
         BLC.pack "You are likely to be eaten by a grue"
+
   describe "Test error conditions" $ do
     it "Try to upload too large a file" $ do
       r <- post' "/addfile" (partFile (T.pack "file") "README.md")
@@ -95,6 +96,13 @@ spec = beforeAll runApp $ do
       (r' ^. responseStatus . statusCode) `shouldBe` 404
       (r' ^. responseBody) `shouldBe`
         BLC.pack "You are likely to be eaten by a grue"
+
+    it "Post file improperly" $ do
+      r <- postWith opts "http://localhost:8080/addfile"
+           (partFile (T.pack "badfile") "LICENSE")
+      (r ^. responseStatus . statusCode) `shouldBe` 400
+      (r ^. responseBody) `shouldBe`
+        BLC.pack "yuck"
 
       where getH2 =
               innerText . take 2 . dropWhile (~/= "<h2>") . parseTags
