@@ -27,7 +27,7 @@ data Secret =
          , secretType :: Type
          , secretTime :: UTCTime
          , secretData :: B.ByteString
-         , secretName :: B.ByteString } deriving (Eq, Show)
+         , secretName :: B.ByteString } deriving Eq
 
 type SecretMap = Map.Map String Secret
 
@@ -35,7 +35,7 @@ type Secrets = TVar SecretMap
 
 data Options =
   Options { secretExpiration  :: NominalDiffTime
-          , secretMaxFileSize :: Int } deriving (Show)
+          , secretMaxFileSize :: Int }
 
 shareable :: Options -> B.ByteString -> String -> Response
 shareable sopts approot key = responseLBS
