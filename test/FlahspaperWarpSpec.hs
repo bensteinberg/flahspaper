@@ -25,7 +25,7 @@ runApp :: IO ()
 runApp = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
-  let sopts = Flahspaper.Options 1 2048
+  let sopts = Flahspaper.Options 0.07 2048
   _ <- ($) forkIO $ janitor secrets sopts
   _ <- ($) forkIO $ run 8080 $ app secrets sopts
   putStrLn "  Started server..."
@@ -70,6 +70,17 @@ retrieveAndRetry s = do
   return (E.decodeUtf8 $ B.concat $ BL.toChunks (r' ^. responseBody),
           r'' ^. responseStatus . statusCode)
 
+postAndWait :: T.Text -> IO Int
+postAndWait s = do
+  -- create a secret
+  r <- post' "/add" [BC.pack "secret" := s]
+  let url = getH2 $ r ^. responseBody
+  -- wait
+  threadDelay 900000
+  -- try to retrieve it
+  r' <- getWith opts $ BLC.unpack url
+  return $ r' ^. responseStatus . statusCode
+
 prop_secretMatch :: T.Text -> Property
 prop_secretMatch s = TQ.monadicIO $ do
   s' <- TQ.run $ retrieve s
@@ -79,6 +90,11 @@ prop_secretMatchAndRetry :: T.Text -> Property
 prop_secretMatchAndRetry s = TQ.monadicIO $ do
   (s', status) <- TQ.run $ retrieveAndRetry s
   TQ.assert $ s == s'
+  TQ.assert $ status == 404
+
+prop_secretLapse :: T.Text -> Property
+prop_secretLapse s = TQ.monadicIO $ do
+  status <- TQ.run $ postAndWait s
   TQ.assert $ status == 404
 
 spec :: Spec
@@ -137,8 +153,8 @@ spec = beforeAll runApp $ do
       r <- post' "/add" [BC.pack "secret" := "Hello"]
       let url = getH2 $ r ^. responseBody
       (r ^. responseStatus . statusCode) `shouldBe` 200
-      -- wait two seconds
-      threadDelay 2000000
+      -- wait one second
+      threadDelay 1000000
       -- try to retrieve it
       r' <- getWith opts $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 404
@@ -160,3 +176,6 @@ spec = beforeAll runApp $ do
       property prop_secretMatch
     it "Secrets match, can't retrieve again" $
       property prop_secretMatchAndRetry
+    -- this will be slow; can we use sub-second expiration?
+    it "Secrets lapse" $
+      property prop_secretLapse
