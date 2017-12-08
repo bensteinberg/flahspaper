@@ -74,6 +74,8 @@ test-suite spec
                      , lens
                      , tagsoup
                      , text
+                     , QuickCheck
+                     , quickcheck-instances
 
 test-suite style
   type:                exitcode-stdio-1.0
