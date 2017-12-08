@@ -8,8 +8,6 @@ import qualified Data.Map.Strict as Map
 import Control.Concurrent (forkIO)
 import Control.Concurrent.STM
 import Network.Wai (Application)
--- import Network.HTTP.Types
--- import Data.Time
 
 myApp :: IO Application
 myApp = do
@@ -46,11 +44,3 @@ spec = with myApp $ do
     it "GET /badness" $ do
       get "/badness" `shouldRespondWith`
         "You are likely to be eaten by a grue" {matchStatus = 404, matchHeaders = ["Content-Type" <:> "text/plain"]}
-    -- why doesn't this work? it returns 200. appears not to pass user agent?
-    -- it "GET / from Slack" $ do
-    --   request methodGet "/" [(hUserAgent, "Slackbot")] "" `shouldRespondWith`
-    --     404 {matchHeaders = ["Content-Type" <:> "text/plain"]}
-    -- and how to POST a file? in process...
-    -- it "POST /addfile" $ do
-    --   request methodPost "/addfile" [(hContentType, "multipart/form-data")] "" `shouldRespondWith`
-    --     200 {matchHeaders = ["Content-Type" <:> "text/html"]}
