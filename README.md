@@ -45,8 +45,8 @@ Locally:
 
 ## Testing
 
-Test with `stack test` or `stack test --coverage`. Possibly coming up:
-QuickCheck. 
+Test with `stack test` or `stack test --coverage`. In progress:
+QuickCheck.
 
 ## Points of perhaps minor interest
 
