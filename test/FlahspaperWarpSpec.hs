@@ -25,7 +25,7 @@ runApp :: IO ()
 runApp = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
-  let sopts = Flahspaper.Options 0.07 2048
+  let sopts = Flahspaper.Options 0.1 2048
   _ <- ($) forkIO $ janitor secrets sopts
   _ <- ($) forkIO $ run 8080 $ app secrets sopts
   putStrLn "  Started server..."
