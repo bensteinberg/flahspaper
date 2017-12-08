@@ -76,7 +76,7 @@ postAndWait s = do
   r <- post' "/add" [BC.pack "secret" := s]
   let url = getH2 $ r ^. responseBody
   -- wait
-  threadDelay 900000
+  threadDelay 1000000
   -- try to retrieve it
   r' <- getWith opts $ BLC.unpack url
   return $ r' ^. responseStatus . statusCode
