@@ -58,10 +58,28 @@ retrieve s = do
   r' <- get $ BLC.unpack url
   return $ E.decodeUtf8 $ B.concat $ BL.toChunks $ r' ^. responseBody
 
+retrieveAndRetry :: T.Text -> IO (T.Text, Int)
+retrieveAndRetry s = do
+  -- create a secret
+  r <- post' "/add" [BC.pack "secret" := s]
+  let url = getH2 $ r ^. responseBody
+  -- retrieve the secret
+  r' <- get $ BLC.unpack url
+  -- try to retrieve it again
+  r'' <- getWith opts $ BLC.unpack url
+  return (E.decodeUtf8 $ B.concat $ BL.toChunks (r' ^. responseBody),
+          r'' ^. responseStatus . statusCode)
+
 prop_secretMatch :: T.Text -> Property
 prop_secretMatch s = TQ.monadicIO $ do
   s' <- TQ.run $ retrieve s
   TQ.assert $ s == s'
+
+prop_secretMatchAndRetry :: T.Text -> Property
+prop_secretMatchAndRetry s = TQ.monadicIO $ do
+  (s', status) <- TQ.run $ retrieveAndRetry s
+  TQ.assert $ s == s'
+  TQ.assert $ status == 404
 
 spec :: Spec
 spec = beforeAll runApp $ do
@@ -138,4 +156,7 @@ spec = beforeAll runApp $ do
       (r ^. responseStatus . statusCode) `shouldBe` 404
 
   describe "QuickCheck secret creation" $ do
-    it "Secret in is secret out" $ property prop_secretMatch
+    it "Secrets match" $
+      property prop_secretMatch
+    it "Secrets match, can't retrieve again" $
+      property prop_secretMatchAndRetry
