@@ -42,6 +42,9 @@ post' path = post $ "http://localhost:8080" ++ path
 grue :: BLC.ByteString
 grue = BLC.pack "You are likely to be eaten by a grue"
 
+yuck :: BLC.ByteString
+yuck = BLC.pack "yuck"
+
 getH2 :: BLC.ByteString -> BLC.ByteString
 getH2 = innerText . take 2 . dropWhile (~/= "<h2>") . parseTags
 
@@ -166,12 +169,17 @@ spec = beforeAll runApp $ do
       (r' ^. responseStatus . statusCode) `shouldBe` 404
       (r' ^. responseBody) `shouldBe` grue
 
+    it "Post secret improperly" $ do
+      r <- postWith opts "http://localhost:8080/add"
+           [BC.pack "badsecret" := "Hello"]
+      (r ^. responseStatus . statusCode) `shouldBe` 400
+      (r ^. responseBody) `shouldBe` yuck
+
     it "Post file improperly" $ do
       r <- postWith opts "http://localhost:8080/addfile"
            (partFile (T.pack "badfile") "LICENSE")
       (r ^. responseStatus . statusCode) `shouldBe` 400
-      (r ^. responseBody) `shouldBe`
-        BLC.pack "yuck"
+      (r ^. responseBody) `shouldBe` yuck
 
     it "Connect from Slack" $ do
       r <- getWith slackopts "http://localhost:8080/"
@@ -185,3 +193,11 @@ spec = beforeAll runApp $ do
     -- this will be slow; can we use sub-second expiration?
     it "Secrets lapse" $
       property prop_secretLapse
+
+  describe "Test function(s)" $ do
+    it "isSlack Nothing" $ do
+      isSlack Nothing `shouldBe` False
+    it "isSlack Something" $ do
+      isSlack (Just $ BC.pack "Hello") `shouldBe` False
+    it "isSlack Slackbot" $ do
+      isSlack (Just $ BC.pack "Slackbot") `shouldBe` True
