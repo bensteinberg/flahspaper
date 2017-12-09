@@ -36,6 +36,9 @@ runApp = do
 get' :: String -> IO (Response BL.ByteString)
 get' path = get $ "http://localhost:8080" ++ path
 
+get'' :: String -> IO (Response BL.ByteString)
+get'' = getWith opts
+
 post' :: Postable a => String -> a -> IO (Response BL.ByteString)
 post' path = post $ "http://localhost:8080" ++ path
 
@@ -72,7 +75,7 @@ retrieveAndRetry s = do
   -- retrieve the secret
   r' <- get $ BLC.unpack url
   -- try to retrieve it again
-  r'' <- getWith opts $ BLC.unpack url
+  r'' <- get'' $ BLC.unpack url
   return (E.decodeUtf8 $ B.concat $ BL.toChunks (r' ^. responseBody),
           r'' ^. responseStatus . statusCode)
 
@@ -84,7 +87,7 @@ postAndWait s = do
   -- wait
   threadDelay 100000
   -- try to retrieve it
-  r' <- getWith opts $ BLC.unpack url
+  r' <- get'' $ BLC.unpack url
   return $ r' ^. responseStatus . statusCode
 
 prop_secretMatch :: T.Text -> Property
@@ -116,10 +119,10 @@ spec = beforeAll runApp $ do
       r <- get' "/addfile"
       (r ^. responseStatus . statusCode) `shouldBe` 200
     it "GET /favicon.ico" $ do
-      r <- getWith opts "http://localhost:8080/favicon.ico"
+      r <- get'' "http://localhost:8080/favicon.ico"
       (r ^. responseStatus . statusCode) `shouldBe` 404
     it "GET /badness" $ do
-      r <- getWith opts "http://localhost:8080/badness"
+      r <- get'' "http://localhost:8080/badness"
       (r ^. responseBody) `shouldBe` grue
 
   describe "Round-trip testing" $ do
@@ -133,20 +136,22 @@ spec = beforeAll runApp $ do
       (r' ^. responseStatus . statusCode) `shouldBe` 200
       (r' ^. responseBody) `shouldBe` BLC.pack "Hello"
       -- try to retrieve it again
-      r'' <- getWith opts $ BLC.unpack url
+      r'' <- get'' $ BLC.unpack url
       (r'' ^. responseStatus . statusCode) `shouldBe` 404
       (r'' ^. responseBody) `shouldBe` grue
 
     it "Create and retrieve a secret file" $ do
       -- upload a file
       r <- post' "/addfile" (partFile (T.pack "file") "LICENSE")
+      original <- readFile "LICENSE"
       let url = getH2 $ r ^. responseBody
       (r ^. responseStatus . statusCode) `shouldBe` 200
-      -- retrieve it; confirm that it is the same file?
+      -- retrieve it; confirm that it is the same file
       r' <- get $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 200
+      original == BLC.unpack (r' ^. responseBody) `shouldBe` True
       -- try to retrieve it again
-      r'' <- getWith opts $ BLC.unpack url
+      r'' <- get'' $ BLC.unpack url
       (r'' ^. responseStatus . statusCode) `shouldBe` 404
       (r'' ^. responseBody) `shouldBe` grue
 
@@ -165,7 +170,7 @@ spec = beforeAll runApp $ do
       -- wait
       threadDelay 100000
       -- try to retrieve it
-      r' <- getWith opts $ BLC.unpack url
+      r' <- get'' $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 404
       (r' ^. responseBody) `shouldBe` grue
 
@@ -190,7 +195,6 @@ spec = beforeAll runApp $ do
       property prop_secretMatch
     it "Secrets match, can't retrieve again" $
       property prop_secretMatchAndRetry
-    -- this will be slow; can we use sub-second expiration?
     it "Secrets lapse" $
       property prop_secretLapse
 
