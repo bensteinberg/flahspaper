@@ -45,8 +45,7 @@ Locally:
 
 ## Testing
 
-Test with `stack test` or `stack test --coverage`. In progress:
-QuickCheck.
+Test with `stack test` or `stack test --coverage`.
 
 ## Points of perhaps minor interest
 
@@ -75,7 +74,16 @@ of
 [Text.RawString.QQ](https://hackage.haskell.org/package/raw-strings-qq) for
 **quasiquoting** in order to get string interpolation. For testing the
 running application, I'm using [wreq](http://www.serpentine.com/wreq/)
-as a client.
+as a **web
+client**,
+[Text.HTML.TagSoup](https://hackage.haskell.org/package/tagsoup) for
+**HTML parsing**,
+and [System.IO.Temp](https://hackage.haskell.org/package/temporary)
+for **temporary files**.
+
+(This
+[State of the Haskell ecosystem](https://github.com/Gabriel439/post-rfc/blob/master/sotu.md) does
+a nice job of showing the variety of approaches.)
 
 If swap is turned off, secrets should only be kept in RAM. Presumably
 that's safe, as anyone who can see your memory already owns you. The
