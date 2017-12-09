@@ -148,13 +148,11 @@ app secrets sopts request respond
                                 status404
                                 [("Content-Type", "text/plain")]
                                 BL.empty
-  -- the first match appears to be necessary for Test.Hspec.Wai,
-  -- and the second appears to be necessary for serving via Warp...
-  | pm == ("", g) || pm == ("/", g) = respond $ responseLBS
-                                      status200
-                                      [("Content-Type", "text/html")] $
-                                      BL.concat
-                                      [lackofstyle, index, endofstyle]
+  | pm == ("/", g)            = respond $ responseLBS
+                                status200
+                                [("Content-Type", "text/html")] $
+                                BL.concat
+                                [lackofstyle, index, endofstyle]
   | pm == ("/add", g)         = respond $ responseLBS
                                 status200
                                 [("Content-Type", "text/html")] $

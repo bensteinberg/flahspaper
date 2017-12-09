@@ -54,6 +54,7 @@ library
 test-suite spec
   type:                exitcode-stdio-1.0
   default-language:    Haskell2010
+  other-modules:       FlahspaperSpec
   hs-source-dirs:      test
   ghc-options:         -Wall
   main-is:             Spec.hs

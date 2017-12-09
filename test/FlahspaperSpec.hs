@@ -112,6 +112,9 @@ spec = beforeAll runApp $ do
     it "GET /addfile" $ do
       r <- get' "/addfile"
       (r ^. responseStatus . statusCode) `shouldBe` 200
+    it "GET /favicon.ico" $ do
+      r <- getWith opts "http://localhost:8080/favicon.ico"
+      (r ^. responseStatus . statusCode) `shouldBe` 404
     it "GET /badness" $ do
       r <- getWith opts "http://localhost:8080/badness"
       (r ^. responseBody) `shouldBe` grue
