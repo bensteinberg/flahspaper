@@ -25,7 +25,7 @@ runApp :: IO ()
 runApp = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
-  let sopts = Flahspaper.Options 1 2048
+  let sopts = Flahspaper.Options 0.1 2048 5000
   -- syntax to suppress a warning:
   -- A do-notation statement discarded a result of type
   --  ‘GHC.Conc.Sync.ThreadId’
@@ -82,7 +82,7 @@ postAndWait s = do
   r <- post' "/add" [BC.pack "secret" := s]
   let url = getH2 $ r ^. responseBody
   -- wait
-  threadDelay 2000000
+  threadDelay 100000
   -- try to retrieve it
   r' <- getWith opts $ BLC.unpack url
   return $ r' ^. responseStatus . statusCode
@@ -163,7 +163,7 @@ spec = beforeAll runApp $ do
       let url = getH2 $ r ^. responseBody
       (r ^. responseStatus . statusCode) `shouldBe` 200
       -- wait
-      threadDelay 2000000
+      threadDelay 100000
       -- try to retrieve it
       r' <- getWith opts $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 404

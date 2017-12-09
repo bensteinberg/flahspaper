@@ -35,7 +35,8 @@ type Secrets = TVar SecretMap
 
 data Options =
   Options { secretExpiration  :: NominalDiffTime
-          , secretMaxFileSize :: Int }
+          , secretMaxFileSize :: Int
+          , janitorInterval :: Int }
 
 shareable :: Options -> B.ByteString -> String -> Response
 shareable sopts approot key = responseLBS
@@ -52,7 +53,7 @@ shareable sopts approot key = responseLBS
 
 janitor :: Secrets -> Options -> IO ()
 janitor secrets sopts = forever $ do
-  threadDelay 1000000
+  threadDelay $ janitorInterval sopts
   now <- getCurrentTime  
   forkIO $ atomically $ sweep secrets sopts now
 

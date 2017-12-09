@@ -14,7 +14,7 @@ main = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
 
-  let sopts = Options (24 * 60 * 60) 10485760
+  let sopts = Options (24 * 60 * 60) 10485760 1000000
 
   forkIO $ janitor secrets sopts
 
