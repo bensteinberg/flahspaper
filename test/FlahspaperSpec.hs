@@ -20,6 +20,8 @@ import Control.Lens
 import Text.HTML.TagSoup
 import Network.HTTP.Types (hUserAgent)
 import Data.Text.Encoding as E
+import System.IO
+import System.IO.Temp
 
 runApp :: IO ()
 runApp = do
@@ -90,6 +92,29 @@ postAndWait s = do
   r' <- get'' $ BLC.unpack url
   return $ r' ^. responseStatus . statusCode
 
+uploadAndRetry :: T.Text -> IO (T.Text, Int)
+uploadAndRetry s = withSystemTempFile "secret" $ \fp h -> do
+  hClose h
+  writeFile fp $ T.unpack s
+  r <- post' "/addfile" (partFile (T.pack "file") fp)
+  let url = getH2 $ r ^. responseBody
+  r' <- get $ BLC.unpack url
+  r'' <- get'' $ BLC.unpack url
+  return (E.decodeUtf8 $ B.concat $ BL.toChunks (r' ^. responseBody),
+          r'' ^. responseStatus . statusCode)
+
+uploadAndWait :: T.Text -> IO Int
+uploadAndWait s = withSystemTempFile "secret" $ \fp h -> do
+  hClose h
+  writeFile fp $ T.unpack s
+  r <- post' "/addfile" (partFile (T.pack "file") fp)
+  let url = getH2 $ r ^. responseBody
+  -- wait
+  threadDelay 100000
+  -- try to retrieve it
+  r' <- get'' $ BLC.unpack url
+  return $ r' ^. responseStatus . statusCode
+
 prop_secretMatch :: T.Text -> Property
 prop_secretMatch s = TQ.monadicIO $ do
   s' <- TQ.run $ retrieve s
@@ -104,6 +129,17 @@ prop_secretMatchAndRetry s = TQ.monadicIO $ do
 prop_secretLapse :: T.Text -> Property
 prop_secretLapse s = TQ.monadicIO $ do
   status <- TQ.run $ postAndWait s
+  TQ.assert $ status == 404
+
+prop_secretFile :: T.Text -> Property
+prop_secretFile s = TQ.monadicIO $ do
+  (s', status) <- TQ.run $ uploadAndRetry s
+  TQ.assert $ s == s'
+  TQ.assert $ status == 404
+
+prop_secretFileLapse :: T.Text -> Property
+prop_secretFileLapse s = TQ.monadicIO $ do
+  status <- TQ.run $ uploadAndWait s
   TQ.assert $ status == 404
 
 spec :: Spec
@@ -197,6 +233,10 @@ spec = beforeAll runApp $ do
       property prop_secretMatchAndRetry
     it "Secrets lapse" $
       property prop_secretLapse
+    it "Secret files match, can't retrieve again" $
+      property prop_secretFile
+    it "Secret files lapse" $
+      property prop_secretFileLapse
 
   describe "Test function(s)" $ do
     it "isSlack Nothing" $ do
