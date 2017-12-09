@@ -25,7 +25,7 @@ runApp :: IO ()
 runApp = do
   let sm = Map.empty :: SecretMap
   secrets <- newTVarIO sm
-  let sopts = Flahspaper.Options 0.1 2048
+  let sopts = Flahspaper.Options 1 2048
   _ <- ($) forkIO $ janitor secrets sopts
   _ <- ($) forkIO $ run 8080 $ app secrets sopts
   putStrLn "  Started server..."
@@ -76,7 +76,7 @@ postAndWait s = do
   r <- post' "/add" [BC.pack "secret" := s]
   let url = getH2 $ r ^. responseBody
   -- wait
-  threadDelay 1000000
+  threadDelay 2000000
   -- try to retrieve it
   r' <- getWith opts $ BLC.unpack url
   return $ r' ^. responseStatus . statusCode
@@ -153,8 +153,8 @@ spec = beforeAll runApp $ do
       r <- post' "/add" [BC.pack "secret" := "Hello"]
       let url = getH2 $ r ^. responseBody
       (r ^. responseStatus . statusCode) `shouldBe` 200
-      -- wait one second
-      threadDelay 1000000
+      -- wait
+      threadDelay 2000000
       -- try to retrieve it
       r' <- getWith opts $ BLC.unpack url
       (r' ^. responseStatus . statusCode) `shouldBe` 404
