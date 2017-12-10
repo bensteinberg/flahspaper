@@ -60,15 +60,6 @@ opts = set Network.Wreq.checkResponse (Just $ \_ _ -> return ()) defaults
 slackopts :: Network.Wreq.Types.Options
 slackopts = opts & header hUserAgent .~ [BC.pack "Slackbot"]
 
-retrieve :: T.Text -> IO T.Text
-retrieve s = do
-  -- create a secret
-  r <- post' "/add" [BC.pack "secret" := s]
-  let url = getH2 $ r ^. responseBody
-  -- retrieve the secret
-  r' <- get $ BLC.unpack url
-  return $ E.decodeUtf8 $ B.concat $ BL.toChunks $ r' ^. responseBody
-
 retrieveAndRetry :: T.Text -> IO (T.Text, Int)
 retrieveAndRetry s = do
   -- create a secret
@@ -115,11 +106,6 @@ uploadAndWait s = withSystemTempFile "secret" $ \fp h -> do
   r' <- get'' $ BLC.unpack url
   return $ r' ^. responseStatus . statusCode
 
-prop_secretMatch :: T.Text -> Property
-prop_secretMatch s = TQ.monadicIO $ do
-  s' <- TQ.run $ retrieve s
-  TQ.assert $ s == s'
-
 prop_secretMatchAndRetry :: T.Text -> Property
 prop_secretMatchAndRetry s = TQ.monadicIO $ do
   (s', status) <- TQ.run $ retrieveAndRetry s
@@ -131,8 +117,8 @@ prop_secretLapse s = TQ.monadicIO $ do
   status <- TQ.run $ postAndWait s
   TQ.assert $ status == 404
 
-prop_secretFile :: T.Text -> Property
-prop_secretFile s = TQ.monadicIO $ do
+prop_secretFileMatchAndRetry :: T.Text -> Property
+prop_secretFileMatchAndRetry s = TQ.monadicIO $ do
   (s', status) <- TQ.run $ uploadAndRetry s
   TQ.assert $ s == s'
   TQ.assert $ status == 404
@@ -227,14 +213,12 @@ spec = beforeAll runApp $ do
       (r ^. responseStatus . statusCode) `shouldBe` 404
 
   describe "QuickCheck secret creation" $ do
-    it "Secrets match" $
-      property prop_secretMatch
     it "Secrets match, can't retrieve again" $
       property prop_secretMatchAndRetry
     it "Secrets lapse" $
       property prop_secretLapse
     it "Secret files match, can't retrieve again" $
-      property prop_secretFile
+      property prop_secretFileMatchAndRetry
     it "Secret files lapse" $
       property prop_secretFileLapse
 
