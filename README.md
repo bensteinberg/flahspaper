@@ -38,8 +38,7 @@ Locally:
    https://github.com/bensteinberg/flahspaper.git ; cd flahspaper`
 3. `stack build`
 4. Get a TLS certificate. Put `certificate.pem` and `key.pem` in the
-   application's directory. Like go-flashpaper, flahspaper "requires
-   TLS, because we are not savages."
+   application's directory.
 5. `stack exec flahspaper`
 6. Visit your service at https://localhost:8443/
 
